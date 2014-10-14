@@ -1,7 +1,7 @@
 #include "audio.h"
 #include "strl.h"
 
-int num_sfx = 0;
+unsigned num_sfx = 0;
 sfx_t** sfxs = NULL;
 
 void mixer_render()
@@ -38,7 +38,7 @@ void sfx_play(sfx_t * sfx)
 
 sfx_t* sfx_new(char *name, bool loop)
 {
-   int wavsize = 0;
+   unsigned wavsize = 0;
    uint8_t wavdata[4096*512];
 
    char path[1024];

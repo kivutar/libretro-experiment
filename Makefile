@@ -60,7 +60,7 @@ else
    CFLAGS += -O3
 endif
 
-OBJECTS := audio.o collisions.o strl.o ground.o ninja.o map.o flame.o obake.o game.o rpng.o json.o libretro.o
+OBJECTS := draw.o audio.o collisions.o strl.o ground.o ninja.o map.o flame.o obake.o game.o rpng.o json.o libretro.o
 CFLAGS += -Wall -pedantic $(fpic) $(PLATFORM_DEFINES)
 
 CFLAGS +=

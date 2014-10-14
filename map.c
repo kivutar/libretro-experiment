@@ -1,65 +1,55 @@
 #include "game.h"
-#include "json.h"
 #include "strl.h"
+#include "map.h"
 
-static json_value data;
-static int width, height, tilewidth, tileheight;
-surface_t tileset_surfaces[10];
-
-static void update(entity_t *self)
+void map_draw_layer(map_t *self, unsigned layer_id)
 {
-}
+   int i, k;
+   for(i = 0; i < self->data.u.object.length; i++) {
+      if (!strcmp(self->data.u.object.values[i].name, "layers")) {
+         json_value *layers = self->data.u.object.values[i].value;
+         json_value *layer = layers->u.array.values[layer_id];
+         for(k = 0; k < layer->u.object.length; k++) {
+            if (!strcmp(layer->u.object.values[k].name, "data")) {
+               json_value *layerdata = layer->u.object.values[k].value;
 
-static void draw(entity_t *self)
-{
-   int i, j, k;
-   for(i = 0; i < data.u.object.length; i++) {
-      if (!strcmp(data.u.object.values[i].name, "layers")) {
-         json_value *layers = data.u.object.values[i].value;
-         for(j = 0; j < layers->u.array.length; j++) {
-            json_value *layer = layers->u.array.values[j];
-            for(k = 0; k < layer->u.object.length; k++) {
-               if (!strcmp(layer->u.object.values[k].name, "data")) {
-                  json_value *layerdata = layer->u.object.values[k].value;
+               int x, y;
+               for (y = 0; y < self->height; y++) {
+                  for (x = 0; x < self->width; x++) {
+                     int id = layerdata->u.array.values[y*self->width+x]->u.integer;
+                     if (id)
+                     {
+                        int tileset_id = 0;
+                        int tileset_numtiles = 0;
 
-                  int x, y;
-                  for (y = 0; y < height; y++) {
-                     for (x = 0; x < width; x++) {
-                        int id = layerdata->u.array.values[y*width+x]->u.integer;
-                        if (id)
+                        tileset_numtiles = 
+                             (self->surfaces[1].w/self->tilewidth) * (self->surfaces[1].h/self->tileheight) 
+                           + (self->surfaces[0].w/self->tilewidth) * (self->surfaces[0].h/self->tileheight);
+
+                        if (id > tileset_numtiles)
                         {
-                           int tileset_id = 0;
-                           int tileset_numtiles = 0;
-
-                           tileset_numtiles = 
-                                (tileset_surfaces[1].w/tilewidth) * (tileset_surfaces[1].h/tileheight) 
-                              + (tileset_surfaces[0].w/tilewidth) * (tileset_surfaces[0].h/tileheight);
-
-                           if (id > tileset_numtiles)
-                           {
-                              tileset_id = 2;
-                              id -= tileset_numtiles;
-                           }
-
-                           tileset_numtiles = (tileset_surfaces[0].w/tilewidth)
-                              *(tileset_surfaces[0].h/tileheight);
-
-                           if (id > tileset_numtiles)
-                           {
-                              tileset_id = 1;
-                              id -= tileset_numtiles;
-                           }
-
-                           draw_tile(
-                              x*tilewidth, 
-                              y*tileheight, 
-                              tilewidth, 
-                              tileheight, 
-                              tileset_surfaces[tileset_id].w, 
-                              tileset_surfaces[tileset_id].h, 
-                              tileset_surfaces[tileset_id].image, 
-                              id);
+                           tileset_id = 2;
+                           id -= tileset_numtiles;
                         }
+
+                        tileset_numtiles = (self->surfaces[0].w/self->tilewidth)
+                           *(self->surfaces[0].h/self->tileheight);
+
+                        if (id > tileset_numtiles)
+                        {
+                           tileset_id = 1;
+                           id -= tileset_numtiles;
+                        }
+
+                        draw_tile(
+                           x*self->tilewidth, 
+                           y*self->tileheight, 
+                           self->tilewidth, 
+                           self->tileheight, 
+                           self->surfaces[tileset_id].w, 
+                           self->surfaces[tileset_id].h, 
+                           self->surfaces[tileset_id].image, 
+                           id);
                      }
                   }
                }
@@ -69,35 +59,44 @@ static void draw(entity_t *self)
    }
 }
 
-entity_t* map_new()
+map_t* map_new(char *name)
 {
+   char path[1024];
+   strlcpy(path, "/usr/share/obake/", sizeof(path));
+   strlcat(path, name, sizeof(path));
+
    char jsonstring[4096*16];
-   FILE *fp = fopen("/usr/share/obake/test.json", "rb");
+   FILE *fp = fopen(path, "rb");
    if (fp)
    {
       fread(jsonstring, sizeof(char), sizeof(jsonstring)-1, fp);
       fclose(fp);
    }
 
-   data = * json_parse(jsonstring, strlen(jsonstring));
+   map_t *self = NULL;
+   self = (map_t*)realloc(self, sizeof(map_t));
+
+   self->data = * json_parse(jsonstring, strlen(jsonstring));
+
+   self->surfaces = (surface_t*)malloc(16*sizeof(surface_t));
 
    int i, j, k, l, m;
-   for(i = 0; i < data.u.object.length; i++) {
+   for(i = 0; i < self->data.u.object.length; i++) {
 
-      if (!strcmp(data.u.object.values[i].name, "width"))
-         width = data.u.object.values[i].value->u.integer;
+      if (!strcmp(self->data.u.object.values[i].name, "width"))
+         self->width = self->data.u.object.values[i].value->u.integer;
 
-      if (!strcmp(data.u.object.values[i].name, "height"))
-         height = data.u.object.values[i].value->u.integer;
+      if (!strcmp(self->data.u.object.values[i].name, "height"))
+         self->height = self->data.u.object.values[i].value->u.integer;
 
-      if (!strcmp(data.u.object.values[i].name, "tilewidth"))
-         tilewidth = data.u.object.values[i].value->u.integer;
+      if (!strcmp(self->data.u.object.values[i].name, "tilewidth"))
+         self->tilewidth = self->data.u.object.values[i].value->u.integer;
 
-      if (!strcmp(data.u.object.values[i].name, "tileheight"))
-         tileheight = data.u.object.values[i].value->u.integer;
+      if (!strcmp(self->data.u.object.values[i].name, "tileheight"))
+         self->tileheight = self->data.u.object.values[i].value->u.integer;
 
-      if (!strcmp(data.u.object.values[i].name, "tilesets")) {
-         json_value *tilesets = data.u.object.values[i].value;
+      if (!strcmp(self->data.u.object.values[i].name, "tilesets")) {
+         json_value *tilesets = self->data.u.object.values[i].value;
          for(j = 0; j < tilesets->u.array.length; j++) {
             json_value *tileset = tilesets->u.array.values[j];
 
@@ -111,14 +110,14 @@ entity_t* map_new()
                   strlcat(filename, tileset->u.object.values[i].value->u.string.ptr, sizeof(filename));
                   strlcat(filename, ".png", sizeof(filename));
 
-                  tileset_surfaces[j] = surface_new(filename);
+                  self->surfaces[j] = surface_new(filename);
                }
             }
          }
       }
 
-      if (!strcmp(data.u.object.values[i].name, "layers")) {
-         json_value *layers = data.u.object.values[i].value;
+      if (!strcmp(self->data.u.object.values[i].name, "layers")) {
+         json_value *layers = self->data.u.object.values[i].value;
          for(j = 0; j < layers->u.array.length; j++) {
             json_value *layer = layers->u.array.values[j];
             for(k = 0; k < layer->u.object.length; k++) {
@@ -151,21 +150,6 @@ entity_t* map_new()
          }
       }
    }
-
-   entity_t *self = NULL;
-   self = (entity_t*)realloc(self, sizeof(entity_t));
-
-   self->x = 0;
-   self->y = 0;
-   self->w = 0;
-   self->h = 0;
-   self->update = &update;
-   self->draw = &draw;
-   self->on_collide = NULL;
-
-   num_entities++;
-   entities = (entity_t**)realloc(entities, num_entities * sizeof(entity_t));
-   entities[num_entities-1] = self;
 
    return self;
 }

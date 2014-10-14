@@ -5,6 +5,14 @@
 float frame_time = 0;
 static bool use_audio_cb;
 
+retro_log_printf_t log_cb;
+retro_video_refresh_t video_cb;
+retro_audio_sample_t audio_cb;
+retro_audio_sample_batch_t audio_batch_cb;
+retro_environment_t environ_cb;
+retro_input_poll_t input_poll_cb;
+retro_input_state_t input_state_cb;
+
 static void emit_audio()
 {
    mixer_render();
@@ -124,7 +132,11 @@ void retro_run(void)
    ks.x      = input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X);
    ks.y      = input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y);
 
-   render_game();
+   update_game();
+
+   draw_game();
+
+   video_cb(fb, SCREEN_WIDTH, SCREEN_HEIGHT, fbpitch*2);
 }
 
 static void audio_set_state(bool enable)
