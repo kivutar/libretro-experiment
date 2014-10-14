@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include "libretro.h"
 #include "rpng.h"
+#include "audio.h"
 
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
@@ -95,5 +96,10 @@ size_t fbpitch;
 
 extern int num_entities;
 extern entity_t** entities;
+
+extern int num_sfx;
+extern sfx_t** sfxs;
+
+sfx_t *sfx_jump;
 
 #endif

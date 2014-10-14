@@ -1,7 +1,15 @@
 #include "libretro.h"
 #include "game.h"
+#include "audio.h"
 
 float frame_time = 0;
+static bool use_audio_cb;
+
+static void emit_audio()
+{
+   mixer_render();
+   audio_batch_cb(audio_buffer, AUDIO_FRAMES);
+}
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -44,7 +52,7 @@ void retro_get_system_info(struct retro_system_info *info)
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
    info->timing.fps = 60.0;
-   info->timing.sample_rate = 48000.0;
+   info->timing.sample_rate = 44100.0;
 
    info->geometry.base_width   = SCREEN_WIDTH;
    info->geometry.base_height  = SCREEN_HEIGHT;
@@ -119,7 +127,12 @@ void retro_run(void)
    render_game();
 }
 
-bool retro_load_game(const struct retro_game_info *info)
+static void audio_set_state(bool enable)
+{
+   (void)enable;
+}
+
+bool retro_load_game(const struct retro_game_info *game)
 {
    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
@@ -129,9 +142,11 @@ bool retro_load_game(const struct retro_game_info *info)
    frame_cb.callback(frame_cb.reference);
    environ_cb(RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK, &frame_cb);
 
+   struct retro_audio_callback audio_cb = { emit_audio, audio_set_state };
+   use_audio_cb = environ_cb(RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK, &audio_cb);
+
    load_game();
 
-   (void)info;
    return true;
 }
 

@@ -71,7 +71,7 @@ static void draw(entity_t *self)
 
 entity_t* map_new()
 {
-   char jsonstring[4096*10];
+   char jsonstring[4096*16];
    FILE *fp = fopen("/usr/share/obake/test.json", "rb");
    if (fp)
    {

@@ -17,7 +17,7 @@ static float ax = 0.1;
 
 static bool on_the_ground(entity_t *self)
 {
-   return solid_at(self->x+8, self->y+33);
+   return solid_at(self->x+8, self->y+32);
 }
 
 static void update(entity_t *self)
@@ -34,6 +34,7 @@ static void update(entity_t *self)
    {
       self->y -= 1;
       vy = - 6;
+      sfx_play(sfx_jump);
    }
 
    // moving

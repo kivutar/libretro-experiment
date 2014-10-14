@@ -78,6 +78,9 @@ void load_game()
    map_new();
    ninja_new();
    obake_new();
+
+   sfx_jump = sfx_new("jump.wav", false);
+   sfx_new("twinstudio.wav", true);
 }
 
 void render_game()
