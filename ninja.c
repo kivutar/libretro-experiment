@@ -14,6 +14,7 @@ static float vy = 0;
 static float ay = 0.2;
 static float vx = 0;
 static float ax = 0.1;
+static anim_t* old_anim;
 
 static bool on_the_ground(entity_t *self)
 {
@@ -33,21 +34,21 @@ static void update(entity_t *self)
    if (ks.b && on_the_ground(self))
    {
       self->y -= 1;
-      vy = - 6;
+      vy = -4;
       sfx_play(sfx_jump);
    }
 
    // moving
    if (ks.left) {
       vx -= ax;
-      if (vx < -6)
-         vx = -6;
+      if (vx < -3)
+         vx = -3;
       self->d = false;
    }
    if (ks.right) {
       vx += ax;
-      if (vx > 6)
-         vx = 6;
+      if (vx > 3)
+         vx = 3;
       self->d = true;
    }
 
@@ -88,6 +89,11 @@ static void update(entity_t *self)
    // duck animation
    if (vx == 0 && on_the_ground(self) && ks.down)
       self->anim = self->d ? &anim_ninja_duck_right : &anim_ninja_duck_left;
+
+   if (self->anim != old_anim)
+      self->anim->t = 0;
+
+   old_anim = self->anim;
 
    // camera
    camera.x = - self->x + SCREEN_WIDTH/2 - self->w/2;
@@ -148,7 +154,7 @@ entity_t* ninja_new()
 
    anim_ninja_run_left.surface = surface_new("/usr/share/obake/ninja_run_left.png");
    anim_ninja_run_left.t = 0;
-   anim_ninja_run_left.p = 3;
+   anim_ninja_run_left.p = 1;
    anim_ninja_run_left.w = 48;
    anim_ninja_run_left.h = 48;
 

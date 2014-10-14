@@ -11,7 +11,7 @@ void load_game()
    obake_new();
 
    sfx_jump = sfx_new("jump.wav", false);
-   sfx_new("twinstudio.wav", true);
+   sfx_new("verger.wav", true);
 }
 
 void update_game()

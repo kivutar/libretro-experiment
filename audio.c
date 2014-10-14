@@ -39,7 +39,7 @@ void sfx_play(sfx_t * sfx)
 sfx_t* sfx_new(char *name, bool loop)
 {
    unsigned wavsize = 0;
-   uint8_t wavdata[4096*512];
+   uint8_t wavdata[4096*1024];
 
    char path[1024];
    strlcpy(path, "/usr/share/obake/", sizeof(path));
