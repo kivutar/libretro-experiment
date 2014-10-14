@@ -11,6 +11,8 @@ void load_game()
    obake_new();
 
    sfx_jump = sfx_new("jump.wav", false);
+   sfx_step = sfx_new("step.wav", false);
+
    sfx_new("verger.wav", true);
 }
 

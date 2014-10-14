@@ -59,6 +59,8 @@ void draw_anim(int dest_x, int dest_y, anim_t *anim)
    if (!anim->p)
       anim->p = 1;
 
+   anim->i = anim->t/anim->p + 1;
+
    draw_tile(
       dest_x, 
       dest_y, 

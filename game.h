@@ -66,6 +66,8 @@ extern unsigned num_sfx;
 extern sfx_t** sfxs;
 
 sfx_t *sfx_jump;
+sfx_t *sfx_step;
+
 map_t *map_test;
 
 #endif

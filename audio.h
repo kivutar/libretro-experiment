@@ -41,6 +41,7 @@ typedef struct
 
 sfx_t* sfx_new(char *name, bool loop);
 void sfx_play(sfx_t * sfx);
+bool sfx_is_playing(sfx_t * self);
 void mixer_render();
 
 #endif

@@ -95,6 +95,12 @@ static void update(entity_t *self)
 
    old_anim = self->anim;
 
+   if (self->anim == &anim_ninja_run_left
+         || self->anim == &anim_ninja_run_right)
+      if (self->anim->i == 5 || self->anim->i == 11)
+         if (!sfx_is_playing(sfx_step))
+            sfx_play(sfx_step);
+
    // camera
    camera.x = - self->x + SCREEN_WIDTH/2 - self->w/2;
    if (camera.x > 0)
@@ -117,6 +123,7 @@ static void on_collide(entity_t *self, entity_t *other, int dx, int dy)
    {
       vy = 0;
       self->y += dy;
+      sfx_play(sfx_step);
    }
 
    if (abs(dx) < abs(dy) && dx < 0)

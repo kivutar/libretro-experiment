@@ -23,6 +23,7 @@ typedef struct surface_s
 typedef struct anim_s
 {
    surface_t surface;
+   int i;
    int t;
    int p;
    int w;

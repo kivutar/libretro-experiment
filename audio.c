@@ -13,8 +13,6 @@ void mixer_render()
    {
       sfxs[i]->samples_to_read = AUDIO_FRAMES;
 
-      if (sfxs[i]->pos > sfxs[i]->num_samples)
-         sfxs[i]->pos = sfxs[i]->loop ? 0 : sfxs[i]->num_samples;
       if (sfxs[i]->pos + sfxs[i]->samples_to_read > sfxs[i]->num_samples)
          sfxs[i]->samples_to_read = sfxs[i]->num_samples - sfxs[i]->pos;
 
@@ -28,12 +26,19 @@ void mixer_render()
       }
 
       sfxs[i]->pos += AUDIO_FRAMES;
+      if (sfxs[i]->pos > sfxs[i]->num_samples)
+         sfxs[i]->pos = sfxs[i]->loop ? 0 : sfxs[i]->num_samples;
    }
 }
 
-void sfx_play(sfx_t * sfx)
+void sfx_play(sfx_t * self)
 {
-   sfx->pos = 0;
+   self->pos = 0;
+}
+
+bool sfx_is_playing(sfx_t * self)
+{
+   return self->pos < self->num_samples;
 }
 
 sfx_t* sfx_new(char *name, bool loop)
