@@ -15,6 +15,8 @@ static float ay = 0.2;
 static float vx = 0;
 static float ax = 0.1;
 static anim_t* old_anim;
+static bool t_step = false;
+static bool t_jump = false;
 
 static bool on_the_ground(entity_t *self)
 {
@@ -31,12 +33,18 @@ static void update(entity_t *self)
    }
 
    // jumping
-   if (ks.b && on_the_ground(self))
+   if (ks.b)
    {
-      self->y -= 1;
-      vy = -4;
-      sfx_play(sfx_jump);
+      if (!t_jump && on_the_ground(self))
+      {
+         self->y -= 1;
+         vy = -4;
+         sfx_play(sfx_jump);
+         t_jump = true;
+      }
    }
+   else
+      t_jump = false;
 
    // moving
    if (ks.left) {
@@ -90,16 +98,24 @@ static void update(entity_t *self)
    if (vx == 0 && on_the_ground(self) && ks.down)
       self->anim = self->d ? &anim_ninja_duck_right : &anim_ninja_duck_left;
 
+   // always animate from first frame 
    if (self->anim != old_anim)
       self->anim->t = 0;
-
    old_anim = self->anim;
 
-   if (self->anim == &anim_ninja_run_left
+   // footsteps sound effect
+   if ((self->anim == &anim_ninja_run_left
          || self->anim == &anim_ninja_run_right)
-      if (self->anim->i == 5 || self->anim->i == 11)
-         if (!sfx_is_playing(sfx_step))
-            sfx_play(sfx_step);
+         && self->anim->i == 5 || self->anim->i == 11)
+   {
+      if (!t_step)
+      {
+         sfx_play(sfx_step);
+         t_step = true;
+      }
+   }
+   else
+      t_step = false;
 
    // camera
    camera.x = - self->x + SCREEN_WIDTH/2 - self->w/2;
@@ -126,19 +142,7 @@ static void on_collide(entity_t *self, entity_t *other, int dx, int dy)
       sfx_play(sfx_step);
    }
 
-   if (abs(dx) < abs(dy) && dx < 0)
-   {
-      vx = 0;
-      self->x += dx;
-   }
-
-   if (abs(dx) < abs(dy) && dx > 0)
-   {
-      vx = 0;
-      self->x += dx;
-   }
-
-   if (abs(dx) < abs(dy) && dx < 0)
+   if (abs(dx) < abs(dy) && dx != 0)
    {
       vx = 0;
       self->x += dx;
