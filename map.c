@@ -59,12 +59,8 @@ void map_draw_layer(map_t *self, unsigned layer_id)
    }
 }
 
-map_t* map_new(char *name)
+map_t* map_new(char *path)
 {
-   char path[1024];
-   strlcpy(path, "/usr/share/obake/", sizeof(path));
-   strlcat(path, name, sizeof(path));
-
    char jsonstring[4096*16];
    FILE *fp = fopen(path, "rb");
    if (fp)

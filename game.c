@@ -5,7 +5,7 @@ entity_t** entities = NULL;
 
 void load_game()
 {
-   map_test = map_new("test.json");
+   map_test = map_new("/usr/share/obake/test.json");
 
    ninja_new();
    obake_new();
