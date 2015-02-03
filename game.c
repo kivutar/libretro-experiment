@@ -10,10 +10,10 @@ void load_game()
    ninja_new();
    obake_new();
 
-   sfx_jump = sfx_new("jump.wav", false);
-   sfx_step = sfx_new("step.wav", false);
+   sfx_jump = sfx_new("/usr/share/obake/jump.wav", false);
+   sfx_step = sfx_new("/usr/share/obake/step.wav", false);
 
-   sfx_new("verger.wav", true);
+   sfx_new("/usr/share/obake/verger.wav", true);
 }
 
 void update_game()

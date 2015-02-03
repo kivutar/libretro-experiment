@@ -4,6 +4,7 @@
 
 float frame_time = 0;
 static bool use_audio_cb;
+int16_t audio_buffer[2 * AUDIO_FRAMES];
 
 retro_log_printf_t log_cb;
 retro_video_refresh_t video_cb;
@@ -15,7 +16,7 @@ retro_input_state_t input_state_cb;
 
 static void emit_audio()
 {
-   mixer_render();
+   mixer_render(audio_buffer);
    audio_batch_cb(audio_buffer, AUDIO_FRAMES);
 }
 

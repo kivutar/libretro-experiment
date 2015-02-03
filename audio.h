@@ -7,8 +7,7 @@
 #include <stdbool.h>
 
 #define AUDIO_FRAMES (44100 / 60)
-
-int16_t audio_buffer[2 * AUDIO_FRAMES];
+#define WAV_HEADER_SIZE 44
 
 typedef struct
 {
@@ -30,18 +29,13 @@ typedef struct
 typedef struct
 {
    wavhead_t head;
-   unsigned bytes_per_sample;
-   void* rawsamples;
-   unsigned pos;
-   unsigned num_samples;
-   unsigned samples_to_read;
-   int16_t* tmp_buffer;
+   unsigned bps; // bytes per sample
+   void* fp;
    bool loop;
 } sfx_t;
 
 sfx_t* sfx_new(char *name, bool loop);
 void sfx_play(sfx_t * sfx);
-bool sfx_is_playing(sfx_t * self);
 void mixer_render();
 
 #endif
