@@ -106,7 +106,7 @@ static void update(entity_t *self)
    // footsteps sound effect
    if ((self->anim == &anim_ninja_run_left
          || self->anim == &anim_ninja_run_right)
-         && self->anim->i == 5 || self->anim->i == 11)
+         && (self->anim->i == 5 || self->anim->i == 11))
    {
       if (!t_step)
       {
