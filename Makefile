@@ -64,7 +64,7 @@ OBJECTS := libs/draw.o \
            libs/audio.o \
            libs/strl.o \
            libs/rpng.o \
-           json.o \
+           libs/json.o \
            collisions.o \
            ground.o \
            ninja.o \
