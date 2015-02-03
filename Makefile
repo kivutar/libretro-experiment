@@ -60,10 +60,21 @@ else
    CFLAGS += -O3
 endif
 
-OBJECTS := draw.o audio.o collisions.o strl.o ground.o ninja.o map.o flame.o obake.o game.o rpng.o json.o libretro.o
-CFLAGS += -Wall -pedantic $(fpic) $(PLATFORM_DEFINES)
+OBJECTS := libs/draw.o \
+           libs/audio.o \
+           libs/strl.o \
+           libs/rpng.o \
+           json.o \
+           collisions.o \
+           ground.o \
+           ninja.o \
+           map.o \
+           flame.o \
+           obake.o \
+           game.o \
+           libretro.o
+CFLAGS += -Wall -pedantic $(fpic) $(PLATFORM_DEFINES) -Ilibs
 
-CFLAGS +=
 LFLAGS := 
 LIBS := -lm
 
