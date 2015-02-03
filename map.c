@@ -61,20 +61,28 @@ void map_draw_layer(map_t *self, unsigned layer_id)
 
 map_t* map_new(char *path)
 {
-   char jsonstring[4096*16];
-   FILE *fp = fopen(path, "rb");
-   if (fp)
-   {
-      fread(jsonstring, sizeof(char), sizeof(jsonstring)-1, fp);
-      fclose(fp);
-   }
+   FILE *fp;
+   long lSize;
+   char *json_buf;
+
+   fp = fopen(path, "rb");
+
+   fseek(fp , 0L , SEEK_END);
+   lSize = ftell( fp );
+   rewind(fp);
+
+   json_buf = calloc( 1, lSize+1 );
+   fread(json_buf , lSize, 1 , fp);
+   fclose(fp);
 
    map_t *self = NULL;
-   self = (map_t*)realloc(self, sizeof(map_t));
+   self = (map_t*)calloc(1, sizeof(map_t));
 
-   self->data = * json_parse(jsonstring, strlen(jsonstring));
+   self->data = * json_parse(json_buf, strlen(json_buf));
 
-   self->surfaces = (surface_t*)malloc(16*sizeof(surface_t));
+   free(json_buf);
+
+   self->surfaces = (surface_t*)calloc(16, sizeof(surface_t));
 
    int i, j, k, l, m;
    for(i = 0; i < self->data.u.object.length; i++) {
