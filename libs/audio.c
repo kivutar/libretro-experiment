@@ -62,6 +62,7 @@ sfx_t* sfx_new(char *path, bool loop)
    self->bps = head.NumChannels * head.BitsPerSample / 8;
    self->fp = fp;
    self->loop = loop;
+   fseek(self->fp, 0, SEEK_END);
 
    num_sfx++;
    sfxs = (sfx_t**)realloc(sfxs, num_sfx * sizeof(sfx_t));
