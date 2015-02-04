@@ -21,12 +21,46 @@ static void object_callback(char *type, int x, int y, int w, int h)
       ground_new(x, y, w, h);
 }
 
+static void tile_callback(int x, int y, int tw, int th, int id)
+{
+   int tileset_id = 0;
+   int tileset_numtiles = 0;
+
+   tileset_numtiles = (surfaces[1].w / tw) * (surfaces[1].h / th)
+                    + (surfaces[0].w / tw) * (surfaces[0].h / th);
+
+   if (id > tileset_numtiles)
+   {
+      tileset_id = 2;
+      id -= tileset_numtiles;
+   }
+
+   tileset_numtiles = (surfaces[0].w/tw)
+                    * (surfaces[0].h/th);
+
+   if (id > tileset_numtiles)
+   {
+      tileset_id = 1;
+      id -= tileset_numtiles;
+   }
+
+   draw_tile(
+      x * tw, 
+      y * th, 
+      tw, 
+      th, 
+      surfaces[tileset_id].w, 
+      surfaces[tileset_id].h, 
+      surfaces[tileset_id].image, 
+      id);
+}
+
 void load_game()
 {
    surfaces = (surface_t*)calloc(16, sizeof(surface_t));
 
    map_test = map_new("/usr/share/obake/test.json",
-         &tileset_callback, &object_callback);
+         &tileset_callback, &object_callback, &tile_callback);
 
    ninja_new();
    obake_new();
@@ -50,11 +84,11 @@ void draw_game()
 {
    draw_rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xff000000);
 
-   map_draw_layer(map_test, surfaces, 0);
+   map_draw_layer(map_test, 0);
 
    unsigned i;
    for(i = 0; i < num_entities; i++)
       entities[i]->draw(entities[i]);
 
-   map_draw_layer(map_test, surfaces, 1);
+   map_draw_layer(map_test, 1);
 }

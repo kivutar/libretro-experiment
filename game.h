@@ -13,6 +13,7 @@
 #include "rpng.h"
 #include "audio.h"
 #include "map.h"
+#include "draw.h"
 #include "strl.h"
 
 typedef struct entity_s

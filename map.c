@@ -1,59 +1,28 @@
-#include "game.h"
-#include "strl.h"
 #include "map.h"
 
-void map_draw_layer(map_t *self, surface_t *surfaces, unsigned layer_id)
+void map_draw_layer(map_t *self, unsigned layer_id)
 {
    int i, k;
    for(i = 0; i < self->data.u.object.length; i++) {
       if (!strcmp(self->data.u.object.values[i].name, "layers")) {
+
          json_value *layers = self->data.u.object.values[i].value;
          json_value *layer = layers->u.array.values[layer_id];
+
          for(k = 0; k < layer->u.object.length; k++) {
             if (!strcmp(layer->u.object.values[k].name, "data")) {
+
                json_value *layerdata = layer->u.object.values[k].value;
 
                int x, y;
                for (y = 0; y < self->height; y++) {
                   for (x = 0; x < self->width; x++) {
+
                      int id = layerdata->u.array.values[y*self->width+x]->u.integer;
-                     if (id)
-                     {
-                        int tileset_id = 0;
-                        int tileset_numtiles = 0;
 
-                        tileset_numtiles
-                           = (surfaces[1].w/self->tilewidth)
-                           * (surfaces[1].h/self->tileheight)
-                           + (surfaces[0].w/self->tilewidth)
-                           * (surfaces[0].h/self->tileheight);
-
-                        if (id > tileset_numtiles)
-                        {
-                           tileset_id = 2;
-                           id -= tileset_numtiles;
-                        }
-
-                        tileset_numtiles
-                           = (surfaces[0].w/self->tilewidth)
-                           * (surfaces[0].h/self->tileheight);
-
-                        if (id > tileset_numtiles)
-                        {
-                           tileset_id = 1;
-                           id -= tileset_numtiles;
-                        }
-
-                        draw_tile(
-                           x*self->tilewidth, 
-                           y*self->tileheight, 
-                           self->tilewidth, 
-                           self->tileheight, 
-                           surfaces[tileset_id].w, 
-                           surfaces[tileset_id].h, 
-                           surfaces[tileset_id].image, 
-                           id);
-                     }
+                     if (id && self->tile_callback)
+                        self->tile_callback(x,
+                              y, self->tilewidth, self->tileheight, id);
                   }
                }
             }
@@ -178,7 +147,8 @@ static void map_parse(map_t *self)
 
 map_t* map_new(char *path,
       void (*tileset_callback)(char *, unsigned),
-      void (*object_callback)(char *, int, int, int, int))
+      void (*object_callback)(char *, int, int, int, int),
+      void (*tile_callback)(int, int, int, int, int))
 {
    FILE *fp;
    long lSize;
@@ -203,6 +173,7 @@ map_t* map_new(char *path,
 
    self->tileset_callback = tileset_callback;
    self->object_callback = object_callback;
+   self->tile_callback = tile_callback;
 
    map_parse(self);
 
