@@ -72,7 +72,6 @@ static void map_parse_tilesets(map_t *self, json_value *tilesets, unsigned i)
 
       for(k = 0; k < tileset->u.object.length; k++)
       {
-         printf("ola %d\n", self->tileset_callback != NULL);
          if (!strcmp(tileset->u.object.values[k].name, "image") &&
                self->tileset_callback)
             self->tileset_callback(
@@ -92,6 +91,7 @@ static void map_parse_objects(map_t *self, json_value *objects)
       int oy = 0;
       int ow = 0;
       int oh = 0;
+      char ot[256];
 
       for(m = 0; m < obj->u.object.length; m++)
       {
@@ -112,9 +112,13 @@ static void map_parse_objects(map_t *self, json_value *objects)
 
          if (!strcmp(name, "height"))
             oh = value->u.integer;
+
+         if (!strcmp(name, "type"))
+            strlcpy(ot, value->u.string.ptr, sizeof(ot));
       }
 
-      ground_new(ox, oy, ow, oh);
+      if (self->object_callback)
+            self->object_callback(ot, ox, oy, ow, oh);
    }
 }
 
@@ -172,7 +176,9 @@ static void map_parse(map_t *self)
    }
 }
 
-map_t* map_new(char *path, void (*tileset_callback)(char *, unsigned))
+map_t* map_new(char *path,
+      void (*tileset_callback)(char *, unsigned),
+      void (*object_callback)(char *, int, int, int, int))
 {
    FILE *fp;
    long lSize;
@@ -196,6 +202,7 @@ map_t* map_new(char *path, void (*tileset_callback)(char *, unsigned))
    free(json_buf);
 
    self->tileset_callback = tileset_callback;
+   self->object_callback = object_callback;
 
    map_parse(self);
 

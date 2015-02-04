@@ -15,11 +15,18 @@ static void tileset_callback(char *name, unsigned j)
    surfaces[j] = surface_new(filename);
 }
 
+static void object_callback(char *type, int x, int y, int w, int h)
+{
+   if (!strcmp(type, "ground"))
+      ground_new(x, y, w, h);
+}
+
 void load_game()
 {
    surfaces = (surface_t*)calloc(16, sizeof(surface_t));
 
-   map_test = map_new("/usr/share/obake/test.json", &tileset_callback);
+   map_test = map_new("/usr/share/obake/test.json",
+         &tileset_callback, &object_callback);
 
    ninja_new();
    obake_new();
