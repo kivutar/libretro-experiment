@@ -22,9 +22,11 @@ void map_draw_layer(map_t *self, unsigned layer_id)
                         int tileset_id = 0;
                         int tileset_numtiles = 0;
 
-                        tileset_numtiles = 
-                             (self->surfaces[1].w/self->tilewidth) * (self->surfaces[1].h/self->tileheight) 
-                           + (self->surfaces[0].w/self->tilewidth) * (self->surfaces[0].h/self->tileheight);
+                        tileset_numtiles
+                           = (self->surfaces[1].w/self->tilewidth)
+                           * (self->surfaces[1].h/self->tileheight)
+                           + (self->surfaces[0].w/self->tilewidth)
+                           * (self->surfaces[0].h/self->tileheight);
 
                         if (id > tileset_numtiles)
                         {
@@ -32,8 +34,9 @@ void map_draw_layer(map_t *self, unsigned layer_id)
                            id -= tileset_numtiles;
                         }
 
-                        tileset_numtiles = (self->surfaces[0].w/self->tilewidth)
-                           *(self->surfaces[0].h/self->tileheight);
+                        tileset_numtiles
+                           = (self->surfaces[0].w/self->tilewidth)
+                           * (self->surfaces[0].h/self->tileheight);
 
                         if (id > tileset_numtiles)
                         {
@@ -56,6 +59,122 @@ void map_draw_layer(map_t *self, unsigned layer_id)
             }
          }
       }
+   }
+}
+
+static void map_parse_tilesets(map_t *self, json_value *tilesets, unsigned i)
+{
+   unsigned j, k;
+
+   for(j = 0; j < tilesets->u.array.length; j++) {
+      json_value *tileset = tilesets->u.array.values[j];
+
+      for(k = 0; k < tileset->u.object.length; k++)
+      {
+         if (!strcmp(tileset->u.object.values[k].name, "image"))
+         {
+            char filename[1024];
+
+            strlcpy(filename, "/usr/share/obake/", sizeof(filename));
+            strlcat(filename,
+                  tileset->u.object.values[i].value->u.string.ptr,
+                  sizeof(filename));
+            strlcat(filename, ".png", sizeof(filename));
+
+            self->surfaces[j] = surface_new(filename);
+         }
+      }
+   }
+}
+
+static void map_parse_objects(map_t *self, json_value *objects)
+{
+   unsigned l, m;
+
+   for(l = 0; l < objects->u.array.length; l++) {
+
+      json_value *obj = objects->u.array.values[l];
+      int ox = 0;
+      int oy = 0;
+      int ow = 0;
+      int oh = 0;
+
+      for(m = 0; m < obj->u.object.length; m++)
+      {
+         char name[256];
+         json_value *value;
+
+         strlcpy(name, obj->u.object.values[m].name, sizeof(name));
+         value = obj->u.object.values[m].value;
+
+         if (!strcmp(name, "x"))
+            ox = value->u.integer;
+
+         if (!strcmp(name, "y"))
+            oy = value->u.integer;
+
+         if (!strcmp(name, "width"))
+            ow = value->u.integer;
+
+         if (!strcmp(name, "height"))
+            oh = value->u.integer;
+      }
+
+      ground_new(ox, oy, ow, oh);
+   }
+}
+
+static void map_parse_layers(map_t *self, json_value *layers)
+{
+   unsigned j, k;
+
+   for(j = 0; j < layers->u.array.length; j++) {
+
+      json_value *layer = layers->u.array.values[j];
+
+      for(k = 0; k < layer->u.object.length; k++) {
+
+         char name[256];
+         json_value *value;
+
+         value = layer->u.object.values[k].value;
+         strlcpy(name, layer->u.object.values[k].name, sizeof(name));
+
+         if (!strcmp(name, "objects"))
+            map_parse_objects(self, value);
+      }
+   }
+}
+
+static void map_parse(map_t *self)
+{
+   unsigned i;
+
+   for(i = 0; i < self->data.u.object.length; i++) {
+
+      char name[256];
+      json_value *value;
+
+      value = self->data.u.object.values[i].value;
+      strlcpy(name, self->data.u.object.values[i].name, sizeof(name));
+
+      if (!strcmp(name, "width"))
+         self->width = value->u.integer;
+
+      if (!strcmp(name, "height"))
+         self->height = value->u.integer;
+
+      if (!strcmp(name, "tilewidth"))
+         self->tilewidth = value->u.integer;
+
+      if (!strcmp(name, "tileheight"))
+         self->tileheight = value->u.integer;
+
+      if (!strcmp(name, "tilesets"))
+         map_parse_tilesets(self, value, i);
+
+      if (!strcmp(name, "layers"))
+         map_parse_layers(self, value);
    }
 }
 
@@ -84,76 +203,7 @@ map_t* map_new(char *path)
 
    self->surfaces = (surface_t*)calloc(16, sizeof(surface_t));
 
-   int i, j, k, l, m;
-   for(i = 0; i < self->data.u.object.length; i++) {
-
-      if (!strcmp(self->data.u.object.values[i].name, "width"))
-         self->width = self->data.u.object.values[i].value->u.integer;
-
-      if (!strcmp(self->data.u.object.values[i].name, "height"))
-         self->height = self->data.u.object.values[i].value->u.integer;
-
-      if (!strcmp(self->data.u.object.values[i].name, "tilewidth"))
-         self->tilewidth = self->data.u.object.values[i].value->u.integer;
-
-      if (!strcmp(self->data.u.object.values[i].name, "tileheight"))
-         self->tileheight = self->data.u.object.values[i].value->u.integer;
-
-      if (!strcmp(self->data.u.object.values[i].name, "tilesets")) {
-         json_value *tilesets = self->data.u.object.values[i].value;
-         for(j = 0; j < tilesets->u.array.length; j++) {
-            json_value *tileset = tilesets->u.array.values[j];
-
-            char filename[1024];
-
-            for(k = 0; k < tileset->u.object.length; k++)
-            {
-               if (!strcmp(tileset->u.object.values[k].name, "image"))
-               {
-                  strlcpy(filename, "/usr/share/obake/", sizeof(filename));
-                  strlcat(filename, tileset->u.object.values[i].value->u.string.ptr, sizeof(filename));
-                  strlcat(filename, ".png", sizeof(filename));
-
-                  self->surfaces[j] = surface_new(filename);
-               }
-            }
-         }
-      }
-
-      if (!strcmp(self->data.u.object.values[i].name, "layers")) {
-         json_value *layers = self->data.u.object.values[i].value;
-         for(j = 0; j < layers->u.array.length; j++) {
-            json_value *layer = layers->u.array.values[j];
-            for(k = 0; k < layer->u.object.length; k++) {
-               if (!strcmp(layer->u.object.values[k].name, "objects")) {
-                  json_value *objs = layer->u.object.values[k].value;
-                  for(l = 0; l < objs->u.array.length; l++) { // 1
-                     json_value *obj = objs->u.array.values[l];
-                     int ox = 0;
-                     int oy = 0;
-                     int ow = 0;
-                     int oh = 0;
-                     for(m = 0; m < obj->u.object.length; m++)
-                     {
-                        if (!strcmp(obj->u.object.values[m].name, "x"))
-                           ox = obj->u.object.values[m].value->u.integer;
-
-                        if (!strcmp(obj->u.object.values[m].name, "y"))
-                           oy = obj->u.object.values[m].value->u.integer;
-
-                        if (!strcmp(obj->u.object.values[m].name, "width"))
-                           ow = obj->u.object.values[m].value->u.integer;
-
-                        if (!strcmp(obj->u.object.values[m].name, "height"))
-                           oh = obj->u.object.values[m].value->u.integer;
-                     }
-                     ground_new(ox, oy, ow, oh);
-                  }
-               }
-            }
-         }
-      }
-   }
+   map_parse(self);
 
    return self;
 }
