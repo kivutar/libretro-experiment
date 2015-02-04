@@ -65,10 +65,10 @@ OBJECTS := libs/draw.o \
            libs/strl.o \
            libs/rpng.o \
            libs/json.o \
+           libs/map.o \
            collisions.o \
            ground.o \
            ninja.o \
-           map.o \
            flame.o \
            obake.o \
            game.o \
