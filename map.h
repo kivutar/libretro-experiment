@@ -11,10 +11,10 @@ typedef struct
 	unsigned tilewidth;
 	unsigned tileheight;
 	json_value data;
-	surface_t* surfaces;
+	void (*tileset_callback)(char *, unsigned);
 } map_t;
 
-map_t* map_new(char *name);
-void map_draw_layer(map_t *self, unsigned layer_id);
+map_t* map_new(char *name, void (*tileset_callback)(char *, unsigned));
+void map_draw_layer(map_t *self, surface_t *surfaces, unsigned layer_id);
 
 #endif

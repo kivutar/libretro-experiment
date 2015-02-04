@@ -2,7 +2,7 @@
 #include "strl.h"
 #include "map.h"
 
-void map_draw_layer(map_t *self, unsigned layer_id)
+void map_draw_layer(map_t *self, surface_t *surfaces, unsigned layer_id)
 {
    int i, k;
    for(i = 0; i < self->data.u.object.length; i++) {
@@ -23,10 +23,10 @@ void map_draw_layer(map_t *self, unsigned layer_id)
                         int tileset_numtiles = 0;
 
                         tileset_numtiles
-                           = (self->surfaces[1].w/self->tilewidth)
-                           * (self->surfaces[1].h/self->tileheight)
-                           + (self->surfaces[0].w/self->tilewidth)
-                           * (self->surfaces[0].h/self->tileheight);
+                           = (surfaces[1].w/self->tilewidth)
+                           * (surfaces[1].h/self->tileheight)
+                           + (surfaces[0].w/self->tilewidth)
+                           * (surfaces[0].h/self->tileheight);
 
                         if (id > tileset_numtiles)
                         {
@@ -35,8 +35,8 @@ void map_draw_layer(map_t *self, unsigned layer_id)
                         }
 
                         tileset_numtiles
-                           = (self->surfaces[0].w/self->tilewidth)
-                           * (self->surfaces[0].h/self->tileheight);
+                           = (surfaces[0].w/self->tilewidth)
+                           * (surfaces[0].h/self->tileheight);
 
                         if (id > tileset_numtiles)
                         {
@@ -49,9 +49,9 @@ void map_draw_layer(map_t *self, unsigned layer_id)
                            y*self->tileheight, 
                            self->tilewidth, 
                            self->tileheight, 
-                           self->surfaces[tileset_id].w, 
-                           self->surfaces[tileset_id].h, 
-                           self->surfaces[tileset_id].image, 
+                           surfaces[tileset_id].w, 
+                           surfaces[tileset_id].h, 
+                           surfaces[tileset_id].image, 
                            id);
                      }
                   }
@@ -67,22 +67,16 @@ static void map_parse_tilesets(map_t *self, json_value *tilesets, unsigned i)
    unsigned j, k;
 
    for(j = 0; j < tilesets->u.array.length; j++) {
+
       json_value *tileset = tilesets->u.array.values[j];
 
       for(k = 0; k < tileset->u.object.length; k++)
       {
-         if (!strcmp(tileset->u.object.values[k].name, "image"))
-         {
-            char filename[1024];
-
-            strlcpy(filename, "/usr/share/obake/", sizeof(filename));
-            strlcat(filename,
-                  tileset->u.object.values[i].value->u.string.ptr,
-                  sizeof(filename));
-            strlcat(filename, ".png", sizeof(filename));
-
-            self->surfaces[j] = surface_new(filename);
-         }
+         printf("ola %d\n", self->tileset_callback != NULL);
+         if (!strcmp(tileset->u.object.values[k].name, "image") &&
+               self->tileset_callback)
+            self->tileset_callback(
+                  tileset->u.object.values[i].value->u.string.ptr, j);
       }
    }
 }
@@ -178,7 +172,7 @@ static void map_parse(map_t *self)
    }
 }
 
-map_t* map_new(char *path)
+map_t* map_new(char *path, void (*tileset_callback)(char *, unsigned))
 {
    FILE *fp;
    long lSize;
@@ -201,7 +195,7 @@ map_t* map_new(char *path)
 
    free(json_buf);
 
-   self->surfaces = (surface_t*)calloc(16, sizeof(surface_t));
+   self->tileset_callback = tileset_callback;
 
    map_parse(self);
 

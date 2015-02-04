@@ -2,10 +2,24 @@
 
 unsigned num_entities = 0;
 entity_t** entities = NULL;
+surface_t* surfaces = NULL;
+
+static void tileset_callback(char *name, unsigned j)
+{
+   char filename[1024];
+
+   strlcpy(filename, "/usr/share/obake/", sizeof(filename));
+   strlcat(filename, name, sizeof(filename));
+   strlcat(filename, ".png", sizeof(filename));
+
+   surfaces[j] = surface_new(filename);
+}
 
 void load_game()
 {
-   map_test = map_new("/usr/share/obake/test.json");
+   surfaces = (surface_t*)calloc(16, sizeof(surface_t));
+
+   map_test = map_new("/usr/share/obake/test.json", &tileset_callback);
 
    ninja_new();
    obake_new();
@@ -29,11 +43,11 @@ void draw_game()
 {
    draw_rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0xff000000);
 
-   map_draw_layer(map_test, 0);
+   map_draw_layer(map_test, surfaces, 0);
 
    unsigned i;
    for(i = 0; i < num_entities; i++)
       entities[i]->draw(entities[i]);
 
-   map_draw_layer(map_test, 1);
+   map_draw_layer(map_test, surfaces, 1);
 }
